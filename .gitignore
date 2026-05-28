@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Database files — local only, never commit these
+packages/backend/data/
+
+# Build output
+dist/
+build/
+
+# Environment variables (for later)
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vite cache
+.vite/
