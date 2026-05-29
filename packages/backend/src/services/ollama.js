@@ -1,5 +1,5 @@
 const OLLAMA_URL = "http://localhost:11434";
-const MODEL = "leetcode-coach:latest";
+const MODEL = "qwen2.5-coder:1.5b";
 
 // Non-streaming version
 export async function chat(messages) {

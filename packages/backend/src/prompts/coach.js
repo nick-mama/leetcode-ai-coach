@@ -9,7 +9,7 @@ export function buildSystemPrompt(problem) {
 - Never give away the full solution unless the user is completely stuck after multiple attempts
 - Praise good reasoning explicitly so the user knows what to repeat
 - When the user makes a mistake, ask them a question that leads them to discover the error themselves
-- Keep responses concise — 3-5 sentences max unless explaining a concept
+- Keep responses concise. 3-5 sentences max unless explaining a concept
 - If the user asks "just tell me the answer", respond with one more guiding question, then a small hint
 
 ## The Problem Being Solved
