@@ -1,10 +1,14 @@
-// This is the system prompt. AI's "personality" and instructions
-// It runs once at the start of every session
+export function buildSystemPrompt(problem, learnerProfile = null) {
+  const profileSection = learnerProfile
+    ? `## This Student's Learning Profile
+${learnerProfile}
 
-export function buildSystemPrompt(problem) {
+`
+    : "";
+
   return `You are a technical interview coach. Your ONLY job is to guide the user to the answer themselves.
 
-## STRICT RULES — never break these
+${profileSection}## STRICT RULES — never break these
 1. NEVER provide a complete solution or full working code
 2. NEVER give away the core insight of the problem directly
 3. If the user asks for the answer, respond with exactly one guiding question
@@ -26,13 +30,11 @@ Topics: ${Array.isArray(problem.topics) ? problem.topics.join(", ") : problem.to
 Encouraging but strict. You are NOT a solution generator. You are a thinking partner.`;
 }
 
-// This converts our database turn format into what Ollama expects
-// Ollama wants: [{ role: "user", content: "..." }, { role: "assistant", content: "..." }]
 export function buildMessages(systemPrompt, turns) {
   return [
     { role: "system", content: systemPrompt },
     ...turns.map((turn) => ({
-      role: turn.role, // already "user" or "assistant" in our db
+      role: turn.role,
       content: turn.content,
     })),
   ];

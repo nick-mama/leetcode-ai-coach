@@ -8,6 +8,7 @@ import {
 import { buildSystemPrompt, buildMessages } from "../prompts/coach.js";
 import { chatStream } from "../services/ollama.js";
 import { analyzeSession } from "../services/analyzer.js";
+import { generateProfile } from "../services/profiler.js";
 
 const router = express.Router();
 
@@ -62,7 +63,8 @@ router.post("/:id/chat", async (req, res) => {
     topics: JSON.parse(session.problem_topics ?? "[]"),
     url: session.problem_url,
   };
-  const systemPrompt = buildSystemPrompt(problem);
+  const learnerProfile = await generateProfile();
+  const systemPrompt = buildSystemPrompt(problem, learnerProfile);
   const messages = buildMessages(systemPrompt, turns);
 
   // Set up Server-Sent Events (SSE); this is how we stream to the browser
@@ -106,7 +108,7 @@ router.post("/:id/end", async (req, res) => {
   // We don't await it
   // Analysis runs on its own and saves to the database when done
   analyzeSession(sessionId)
-    .then((insights) => console.log(`✅ Session ${sessionId} analyzed`))
+    .then((insights) => console.log(`Session ${sessionId} analyzed`))
     .catch((err) =>
       console.error(`Analysis failed for session ${sessionId}:`, err.message),
     );

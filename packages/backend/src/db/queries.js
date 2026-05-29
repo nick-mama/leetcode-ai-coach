@@ -184,4 +184,37 @@ export const insightQueries = {
       mistakes: JSON.parse(row.mistakes ?? "[]"),
     }));
   },
+
+  // Get aggregated weaknesses across all sessions
+  // This is the raw material for the learning profile
+  getAggregated() {
+    const rows = db
+      .prepare(
+        `
+    SELECT 
+      si.strengths,
+      si.weaknesses,
+      si.mistakes,
+      si.confidence,
+      si.comm_score,
+      p.title as problem_title,
+      p.difficulty,
+      p.topics,
+      s.started_at
+    FROM session_insights si
+    JOIN sessions s ON s.id = si.session_id
+    JOIN problems p ON p.id = s.problem_id
+    ORDER BY s.started_at DESC
+  `,
+      )
+      .all();
+
+    return rows.map((row) => ({
+      ...row,
+      strengths: JSON.parse(row.strengths ?? "[]"),
+      weaknesses: JSON.parse(row.weaknesses ?? "[]"),
+      mistakes: JSON.parse(row.mistakes ?? "[]"),
+      topics: JSON.parse(row.topics ?? "[]"),
+    }));
+  },
 };
