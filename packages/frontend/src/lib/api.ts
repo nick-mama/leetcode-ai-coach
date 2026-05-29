@@ -83,7 +83,38 @@ export async function endSession(sessionId: number, solved: boolean) {
   return res.json();
 }
 
-export async function getRecentSessions() {
+export interface Insights {
+  id: number;
+  session_id: number;
+  strengths: string[];
+  weaknesses: string[];
+  mistakes: string[];
+  confidence: string;
+  comm_score: number;
+  summary: string;
+  created_at: string;
+}
+
+export interface SessionWithProblem {
+  id: number;
+  problem_title: string;
+  problem_difficulty: string;
+  status: string;
+  started_at: string;
+  solved: number;
+}
+
+export async function getInsights(
+  sessionId: number,
+): Promise<{ insights: Insights }> {
+  const res = await fetch(`${BASE}/sessions/${sessionId}/insights`);
+  if (!res.ok) throw new Error("No insights yet");
+  return res.json();
+}
+
+export async function getRecentSessions(): Promise<{
+  sessions: SessionWithProblem[];
+}> {
   const res = await fetch(`${BASE}/sessions/recent`);
   return res.json();
 }

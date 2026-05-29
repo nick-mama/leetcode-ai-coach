@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Brain, Plus, X } from "lucide-react";
+import { Brain, Plus, X, LayoutDashboard, MessageSquare } from "lucide-react";
 import { ChatWindow } from "./components/ChatWindow";
-import { startSession, type Problem } from "./lib/api";
+import { Dashboard } from "./components/Dashboard";
+import { startSession, endSession, type Problem } from "./lib/api";
 
-// Sample problems to choose from — in a real app, you'd fetch this from the backend
 const SAMPLE_PROBLEMS: Problem[] = [
   {
     title: "Two Sum",
@@ -44,7 +44,10 @@ const DIFFICULTY_COLORS = {
   Hard: "text-red-400",
 };
 
+type View = "home" | "chat" | "dashboard";
+
 export default function App() {
+  const [view, setView] = useState<View>("home");
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [activeProblem, setActiveProblem] = useState<Problem | null>(null);
   const [isStarting, setIsStarting] = useState(false);
@@ -55,14 +58,19 @@ export default function App() {
       const { session } = await startSession(problem);
       setSessionId(session.id);
       setActiveProblem(problem);
+      setView("chat");
     } finally {
       setIsStarting(false);
     }
   }
 
-  function handleEndSession() {
+  async function handleEndSession() {
+    if (sessionId) {
+      await endSession(sessionId, false);
+    }
     setSessionId(null);
     setActiveProblem(null);
+    setView("home");
   }
 
   return (
@@ -73,30 +81,62 @@ export default function App() {
           <Brain className="text-blue-400" size={24} />
           <span className="font-semibold text-lg">LeetCode AI Coach</span>
         </div>
-        {activeProblem && (
-          <div className="flex items-center gap-4">
-            <div>
-              <span className="text-sm font-medium">{activeProblem.title}</span>
-              <span
-                className={`text-xs ml-2 ${DIFFICULTY_COLORS[activeProblem.difficulty]}`}
+
+        <div className="flex items-center gap-4">
+          {/* Nav tabs */}
+          {view !== "chat" && (
+            <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
+              <button
+                onClick={() => setView("home")}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  view === "home"
+                    ? "bg-slate-700 text-white"
+                    : "text-slate-400 hover:text-white"
+                }`}
               >
-                {activeProblem.difficulty}
-              </span>
+                <Plus size={14} /> Problems
+              </button>
+              <button
+                onClick={() => setView("dashboard")}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  view === "dashboard"
+                    ? "bg-slate-700 text-white"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <LayoutDashboard size={14} /> Dashboard
+              </button>
             </div>
-            <button
-              onClick={handleEndSession}
-              className="text-slate-400 hover:text-slate-200 transition-colors"
-              title="End session"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        )}
+          )}
+
+          {/* Active session info */}
+          {view === "chat" && activeProblem && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <MessageSquare size={14} className="text-blue-400" />
+                <span className="text-sm font-medium">
+                  {activeProblem.title}
+                </span>
+                <span
+                  className={`text-xs ${DIFFICULTY_COLORS[activeProblem.difficulty]}`}
+                >
+                  {activeProblem.difficulty}
+                </span>
+              </div>
+              <button
+                onClick={handleEndSession}
+                className="text-slate-400 hover:text-slate-200 transition-colors"
+                title="End session"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Main content */}
-      {!sessionId ? (
-        // Problem selection screen
+      {view === "home" && (
         <div className="max-w-2xl mx-auto px-6 py-12">
           <h1 className="text-2xl font-bold mb-2">What are you working on?</h1>
           <p className="text-slate-400 mb-8">
@@ -140,10 +180,17 @@ export default function App() {
             </div>
           </div>
         </div>
-      ) : (
-        // Active coaching session — full height chat
+      )}
+
+      {view === "chat" && sessionId && (
         <div style={{ height: "calc(100vh - 65px)" }}>
           <ChatWindow sessionId={sessionId} />
+        </div>
+      )}
+
+      {view === "dashboard" && (
+        <div style={{ height: "calc(100vh - 65px)" }}>
+          <Dashboard />
         </div>
       )}
     </div>
