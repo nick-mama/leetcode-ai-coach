@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { sendMessage, type Turn } from "../lib/api";
+import Markdown from "react-markdown";
 
 interface Props {
   sessionId: number;
@@ -109,7 +110,9 @@ export function ChatWindow({ sessionId, initialTurns = [] }: Props) {
                   AI Coach
                 </p>
               )}
-              <p className="whitespace-pre-wrap">{turn.content}</p>
+              <div className="prose prose-invert prose-sm max-w-none">
+                <Markdown>{turn.content}</Markdown>
+              </div>
             </div>
           </div>
         ))}
@@ -121,7 +124,9 @@ export function ChatWindow({ sessionId, initialTurns = [] }: Props) {
               <p className="text-xs text-slate-400 mb-1 font-medium">
                 AI Coach
               </p>
-              <p className="whitespace-pre-wrap">{streamingContent}</p>
+              <div className="prose prose-invert prose-sm max-w-none">
+                <Markdown>{streamingContent}</Markdown>
+              </div>
               <span className="inline-block w-1.5 h-3.5 bg-slate-400 ml-0.5 animate-pulse" />
             </div>
           </div>
