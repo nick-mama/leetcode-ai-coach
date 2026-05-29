@@ -121,3 +121,67 @@ export const turnQueries = {
       .all(sessionId);
   },
 };
+
+// Session Insights
+
+export const insightQueries = {
+  save(sessionId, insights) {
+    const stmt = db.prepare(`
+      INSERT INTO session_insights (
+        session_id, strengths, weaknesses, mistakes, confidence, comm_score, summary
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      RETURNING *
+    `);
+    return stmt.get(
+      sessionId,
+      JSON.stringify(insights.strengths ?? []),
+      JSON.stringify(insights.weaknesses ?? []),
+      JSON.stringify(insights.mistakes ?? []),
+      insights.confidence ?? "medium",
+      insights.comm_score ?? null,
+      insights.summary ?? "",
+    );
+  },
+
+  getBySession(sessionId) {
+    const row = db
+      .prepare(
+        `
+      SELECT * FROM session_insights WHERE session_id = ?
+    `,
+      )
+      .get(sessionId);
+
+    if (!row) return null;
+
+    // Parse the JSON arrays back out before returning
+    return {
+      ...row,
+      strengths: JSON.parse(row.strengths ?? "[]"),
+      weaknesses: JSON.parse(row.weaknesses ?? "[]"),
+      mistakes: JSON.parse(row.mistakes ?? "[]"),
+    };
+  },
+
+  // Get all insights across all sessions; this is what builds your learning profile
+  getAll() {
+    const rows = db
+      .prepare(
+        `
+      SELECT si.*, p.title as problem_title, p.difficulty
+      FROM session_insights si
+      JOIN sessions s ON s.id = si.session_id
+      JOIN problems p ON p.id = s.problem_id
+      ORDER BY si.created_at DESC
+    `,
+      )
+      .all();
+
+    return rows.map((row) => ({
+      ...row,
+      strengths: JSON.parse(row.strengths ?? "[]"),
+      weaknesses: JSON.parse(row.weaknesses ?? "[]"),
+      mistakes: JSON.parse(row.mistakes ?? "[]"),
+    }));
+  },
+};

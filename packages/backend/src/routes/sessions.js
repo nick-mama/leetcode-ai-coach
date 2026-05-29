@@ -1,7 +1,13 @@
 import express from "express";
-import { problemQueries, sessionQueries, turnQueries } from "../db/queries.js";
+import {
+  problemQueries,
+  sessionQueries,
+  turnQueries,
+  insightQueries,
+} from "../db/queries.js";
 import { buildSystemPrompt, buildMessages } from "../prompts/coach.js";
 import { chatStream } from "../services/ollama.js";
+import { analyzeSession } from "../services/analyzer.js";
 
 const router = express.Router();
 
@@ -87,7 +93,7 @@ router.post("/:id/chat", async (req, res) => {
 });
 
 // POST /api/sessions/:id/end
-router.post("/:id/end", (req, res) => {
+router.post("/:id/end", async (req, res) => {
   const sessionId = parseInt(req.params.id);
   const { solved } = req.body;
 
@@ -96,7 +102,28 @@ router.post("/:id/end", (req, res) => {
     return res.status(404).json({ error: "Session not found" });
   }
 
+  // Kick off analysis in the background
+  // We don't await it
+  // Analysis runs on its own and saves to the database when done
+  analyzeSession(sessionId)
+    .then((insights) => console.log(`✅ Session ${sessionId} analyzed`))
+    .catch((err) =>
+      console.error(`Analysis failed for session ${sessionId}:`, err.message),
+    );
+
   res.json({ session });
+});
+
+// GET /api/sessions/:id/insights
+router.get("/:id/insights", async (req, res) => {
+  const sessionId = parseInt(req.params.id);
+  const insights = insightQueries.getBySession(sessionId);
+
+  if (!insights) {
+    return res.status(404).json({ error: "No insights yet for this session" });
+  }
+
+  res.json({ insights });
 });
 
 // GET /api/sessions/recent

@@ -31,7 +31,19 @@ export function initializeSchema() {
       content     TEXT NOT NULL,
       created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
     );
-  `);
+  
+    CREATE TABLE IF NOT EXISTS session_insights (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id      INTEGER NOT NULL REFERENCES sessions(id),
+      strengths       TEXT,
+      weaknesses      TEXT,
+      mistakes        TEXT,
+      confidence      TEXT,
+      comm_score      INTEGER,
+      summary         TEXT,
+      created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    `);
 
   console.log("✅ Database schema initialized");
 }
