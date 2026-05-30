@@ -1,20 +1,36 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
-import { sendMessage, type Turn } from "../lib/api";
 import Markdown from "react-markdown";
+import { sendMessage, endSession, type Turn } from "../lib/api";
 
 interface Props {
   sessionId: number;
   initialTurns?: Turn[];
+  onSessionEnd: () => void;
 }
 
-export function ChatWindow({ sessionId, initialTurns = [] }: Props) {
+export function ChatWindow({
+  sessionId,
+  initialTurns = [],
+  onSessionEnd,
+}: Props) {
   const [turns, setTurns] = useState<Turn[]>(initialTurns);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   // streamingContent holds the AI response as it's being built token by token
   const [streamingContent, setStreamingContent] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [isEnding, setIsEnding] = useState(false);
+
+  async function handleEndSession(didSolve: boolean) {
+    setIsEnding(true);
+    try {
+      await endSession(sessionId, didSolve);
+      onSessionEnd();
+    } finally {
+      setIsEnding(false);
+    }
+  }
 
   // Auto-scroll to bottom whenever turns or streaming content changes
   useEffect(() => {
@@ -133,6 +149,27 @@ export function ChatWindow({ sessionId, initialTurns = [] }: Props) {
         )}
 
         <div ref={bottomRef} />
+      </div>
+
+      {/* End session bar */}
+      <div className="border-t border-slate-700 px-4 py-2 flex items-center justify-between">
+        <span className="text-xs text-slate-400">Ready to finish?</span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleEndSession(false)}
+            disabled={isEnding}
+            className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors disabled:opacity-50"
+          >
+            End Session
+          </button>
+          <button
+            onClick={() => handleEndSession(true)}
+            disabled={isEnding}
+            className="text-xs px-3 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 text-white transition-colors disabled:opacity-50"
+          >
+            ✓ Solved It
+          </button>
+        </div>
       </div>
 
       {/* Input area */}

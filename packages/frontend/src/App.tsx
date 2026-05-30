@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Brain, Plus, X, LayoutDashboard, MessageSquare } from "lucide-react";
+import { Brain, Plus, LayoutDashboard, MessageSquare } from "lucide-react";
 import { ChatWindow } from "./components/ChatWindow";
 import { Dashboard } from "./components/Dashboard";
-import { startSession, endSession, type Problem } from "./lib/api";
+import { startSession, type Problem } from "./lib/api";
 
 const SAMPLE_PROBLEMS: Problem[] = [
   {
@@ -64,15 +64,6 @@ export default function App() {
     }
   }
 
-  async function handleEndSession() {
-    if (sessionId) {
-      await endSession(sessionId, false);
-    }
-    setSessionId(null);
-    setActiveProblem(null);
-    setView("home");
-  }
-
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
       {/* Header */}
@@ -123,13 +114,6 @@ export default function App() {
                   {activeProblem.difficulty}
                 </span>
               </div>
-              <button
-                onClick={handleEndSession}
-                className="text-slate-400 hover:text-slate-200 transition-colors"
-                title="End session"
-              >
-                <X size={18} />
-              </button>
             </div>
           )}
         </div>
@@ -184,7 +168,14 @@ export default function App() {
 
       {view === "chat" && sessionId && (
         <div style={{ height: "calc(100vh - 65px)" }}>
-          <ChatWindow sessionId={sessionId} />
+          <ChatWindow
+            sessionId={sessionId}
+            onSessionEnd={() => {
+              setSessionId(null);
+              setActiveProblem(null);
+              setView("dashboard");
+            }}
+          />
         </div>
       )}
 
