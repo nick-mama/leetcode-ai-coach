@@ -1,6 +1,9 @@
 // All backend communication lives here
 
-const BASE = "/api";
+const BASE =
+  typeof chrome !== "undefined" && chrome.runtime?.id
+    ? "http://localhost:3001/api" // Chrome extension
+    : "/api"; // Local dev
 
 export interface Problem {
   title: string;

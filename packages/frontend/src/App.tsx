@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Brain, Plus, LayoutDashboard, MessageSquare } from "lucide-react";
 import { ChatWindow } from "./components/ChatWindow";
 import { Dashboard } from "./components/Dashboard";
@@ -51,6 +51,50 @@ export default function App() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [activeProblem, setActiveProblem] = useState<Problem | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+
+  useEffect(() => {
+    if (typeof chrome === "undefined" || !chrome.storage) return;
+
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    const poll = setInterval(() => {
+      attempts++;
+      chrome.storage.local.get(
+        "detectedProblem",
+        (result: { detectedProblem?: Problem }) => {
+          if (result.detectedProblem) {
+            clearInterval(poll);
+            handleSelectProblem(result.detectedProblem);
+            chrome.storage.local.remove("detectedProblem");
+          } else if (attempts >= maxAttempts) {
+            clearInterval(poll);
+          }
+        },
+      );
+    }, 500);
+
+    const storageListener = (changes: {
+      [key: string]: chrome.storage.StorageChange;
+    }) => {
+      if (changes.detectedProblem?.newValue) {
+        const newProblem = changes.detectedProblem.newValue as Problem;
+        setSessionId(null);
+        setActiveProblem(null);
+        setView("home");
+        setTimeout(() => {
+          handleSelectProblem(newProblem);
+          chrome.storage.local.remove("detectedProblem");
+        }, 100);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(storageListener);
+    return () => {
+      clearInterval(poll);
+      chrome.storage.onChanged.removeListener(storageListener);
+    };
+  }, []);
 
   async function handleSelectProblem(problem: Problem) {
     setIsStarting(true);

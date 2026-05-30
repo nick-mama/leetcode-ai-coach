@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "LeetCode AI Coach",
+  "version": "1.0.0",
+  "description": "AI coaching sidebar for LeetCode and NeetCode",
+  "permissions": ["sidePanel", "activeTab", "scripting", "storage"],
+  "host_permissions": ["https://leetcode.com/*", "https://neetcode.io/*"],
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open LeetCode AI Coach",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://leetcode.com/problems/*",
+        "https://neetcode.io/problems/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
