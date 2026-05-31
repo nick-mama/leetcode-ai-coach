@@ -265,10 +265,10 @@ export function Profile() {
         </div>
       )}
 
-      {/* NeetCode Roadmap Progress */}
+      {/* Roadmap Progress */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-3">
         <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-1 mb-3">
-          <Target size={12} /> NeetCode Roadmap
+          <Target size={12} /> Roadmap
         </h3>
         <div className="space-y-1.5">
           {data.roadmapProgress.map((item, i) => (
