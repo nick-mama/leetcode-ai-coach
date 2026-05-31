@@ -35,7 +35,15 @@ The JSON must follow this exact shape:
 - weaknesses: patterns to improve (jumping to code, missing edge cases, poor explanation)
 - mistakes: specific errors made during this session
 - confidence: how confident the student seemed in their approach
-- comm_score: how clearly they explained their thinking (1 = silent coder, 10 = excellent verbal reasoning)
+- comm_score: score from 1-10 based on these criteria:
+  1-2: Barely communicated, just wrote code with no explanation
+  3-4: Mentioned the approach but didn't explain reasoning or tradeoffs
+  5-6: Explained the approach clearly but missed complexity or edge cases
+  7-8: Explained approach, complexity, and most edge cases with clear reasoning
+  9: Explained everything thoroughly including tradeoffs and alternatives
+  10: Perfect interview-level explanation — approach, complexity, edge cases, tradeoffs, alternatives, and clear verbal reasoning throughout
+
+Be precise. If the student explained their full approach including time complexity and edge cases, that is at minimum a 7. Reserve scores below 5 for students who barely explained anything. Do not cluster scores around 2, 4, or 8 — use the full range.
 
 Return ONLY the JSON object. No other text.`;
 }

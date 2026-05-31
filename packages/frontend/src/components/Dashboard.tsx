@@ -136,7 +136,7 @@ export function Dashboard({ onResumeSession }: Props) {
               </span>
               <span className="text-xs text-slate-500 flex items-center gap-1">
                 <Clock size={10} />
-                {new Date(session.started_at).toLocaleString("en-US", {
+                {new Date(session.started_at + "Z").toLocaleString("en-US", {
                   month: "short",
                   day: "numeric",
                   hour: "numeric",
@@ -172,8 +172,16 @@ export function Dashboard({ onResumeSession }: Props) {
                     </p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-slate-400">
-                        Comm:{" "}
-                        <span className="text-blue-400 font-medium">
+                        Communication Rating:{" "}
+                        <span
+                          className={`font-medium ${
+                            selectedInsights.comm_score <= 5
+                              ? "text-red-400"
+                              : selectedInsights.comm_score <= 7
+                                ? "text-yellow-400"
+                                : "text-green-400"
+                          }`}
+                        >
                           {selectedInsights.comm_score}/10
                         </span>
                       </span>
