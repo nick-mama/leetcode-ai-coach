@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Brain, LayoutDashboard, MessageSquare } from "lucide-react";
+import { Brain, LayoutDashboard, MessageSquare, User } from "lucide-react";
 import { ChatWindow } from "./components/ChatWindow";
 import { Dashboard } from "./components/Dashboard";
 import { startSession, getTurns, type Problem, type Turn } from "./lib/api";
+import { Profile } from "./components/Profile";
 
 const DIFFICULTY_COLORS = {
   Easy: "text-green-400",
@@ -10,7 +11,7 @@ const DIFFICULTY_COLORS = {
   Hard: "text-red-400",
 };
 
-type View = "home" | "chat" | "dashboard";
+type View = "home" | "chat" | "dashboard" | "profile";
 
 export default function App() {
   const [view, setView] = useState<View>("home");
@@ -108,18 +109,30 @@ export default function App() {
 
         <div className="flex items-center gap-4">
           {view !== "chat" && (
-            <button
-              onClick={() =>
-                setView(view === "dashboard" ? "home" : "dashboard")
-              }
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
-                view === "dashboard"
-                  ? "bg-slate-700 text-white"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <LayoutDashboard size={14} /> Dashboard
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() =>
+                  setView(view === "dashboard" ? "home" : "dashboard")
+                }
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  view === "dashboard"
+                    ? "bg-slate-700 text-white"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <LayoutDashboard size={14} /> Sessions
+              </button>
+              <button
+                onClick={() => setView(view === "profile" ? "home" : "profile")}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  view === "profile"
+                    ? "bg-slate-700 text-white"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <User size={14} /> Profile
+              </button>
+            </div>
           )}
 
           {view === "chat" && activeProblem && (
@@ -138,9 +151,16 @@ export default function App() {
               <button
                 onClick={() => setView("dashboard")}
                 className="text-slate-400 hover:text-slate-200 transition-colors"
-                title="View dashboard"
+                title="View sessions"
               >
                 <LayoutDashboard size={16} />
+              </button>
+              <button
+                onClick={() => setView("profile")}
+                className="text-slate-400 hover:text-slate-200 transition-colors"
+                title="View profile"
+              >
+                <User size={16} />
               </button>
             </div>
           )}
@@ -180,6 +200,11 @@ export default function App() {
       {view === "dashboard" && (
         <div style={{ height: "calc(100vh - 65px)" }}>
           <Dashboard onResumeSession={handleResumeSession} />
+        </div>
+      )}
+      {view === "profile" && (
+        <div style={{ height: "calc(100vh - 65px)" }}>
+          <Profile />
         </div>
       )}
     </div>

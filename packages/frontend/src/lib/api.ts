@@ -126,3 +126,31 @@ export async function getTurns(sessionId: number): Promise<{ turns: Turn[] }> {
   const res = await fetch(`${BASE}/sessions/${sessionId}/turns`);
   return res.json();
 }
+
+export interface ProfileData {
+  overview: {
+    totalSessions: number;
+    solved: number;
+    avgCommScore: number;
+  };
+  commScoreHistory: {
+    date: string;
+    score: number;
+    problem: string;
+  }[];
+  weakTopics: { topic: string; count: number }[];
+  weakSkills: { skill: string; count: number }[];
+  vital: { label: string; count: number; type: string }[];
+  roadmapProgress: {
+    id: string;
+    label: string;
+    practiced: boolean;
+    solved: boolean;
+  }[];
+  currentPosition: number;
+}
+
+export async function getProfile(): Promise<ProfileData> {
+  const res = await fetch(`${BASE}/profile`);
+  return res.json();
+}
