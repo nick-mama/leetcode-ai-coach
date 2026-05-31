@@ -32,7 +32,7 @@ export interface Session {
 // Start a new coaching session for a problem
 export async function startSession(
   problem: Problem,
-): Promise<{ session: Session }> {
+): Promise<{ session: Session; turns: Turn[] }> {
   const res = await fetch(`${BASE}/sessions/start`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -119,5 +119,10 @@ export async function getRecentSessions(): Promise<{
   sessions: SessionWithProblem[];
 }> {
   const res = await fetch(`${BASE}/sessions/recent`);
+  return res.json();
+}
+
+export async function getTurns(sessionId: number): Promise<{ turns: Turn[] }> {
+  const res = await fetch(`${BASE}/sessions/${sessionId}/turns`);
   return res.json();
 }

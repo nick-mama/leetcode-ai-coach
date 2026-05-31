@@ -98,28 +98,38 @@ function sendProblemToBackground(problem) {
   });
 }
 
-// Run immediately when the page loads
+// Watch for URL changes using a MutationObserver on the document title
+// When the title changes, the problem has changed
+let lastUrl = window.location.href;
+let lastSlug = "";
+
+const observer = new MutationObserver(() => {
+  if (window.location.href !== lastUrl) {
+    lastUrl = window.location.href;
+
+    const match = window.location.pathname.match(/\/problems\/([^/]+)/);
+    const newSlug = match ? match[1] : "";
+
+    if (newSlug && newSlug !== lastSlug) {
+      lastSlug = newSlug;
+      setTimeout(() => {
+        const problem = extractProblem();
+        if (problem) sendProblemToBackground(problem);
+      }, 1500);
+    }
+  }
+});
+
+observer.observe(document, { subtree: true, childList: true });
+
 function init() {
+  const match = window.location.pathname.match(/\/problems\/([^/]+)/);
+  lastSlug = match ? match[1] : "";
+
   const problem = extractProblem();
   if (problem) {
     sendProblemToBackground(problem);
   }
 }
-
-// Watch for URL changes using a MutationObserver on the document title
-// When the title changes, the problem has changed
-let lastUrl = window.location.href;
-const observer = new MutationObserver(() => {
-  if (window.location.href !== lastUrl) {
-    lastUrl = window.location.href;
-    // Wait for the DOM to update before scraping
-    setTimeout(() => {
-      const problem = extractProblem();
-      if (problem) sendProblemToBackground(problem);
-    }, 1500);
-  }
-});
-
-observer.observe(document, { subtree: true, childList: true });
 
 init();

@@ -1,6 +1,6 @@
-import { chat } from "./ollama.js";
 import { buildProfilePrompt } from "../prompts/profile.js";
 import { insightQueries } from "../db/queries.js";
+import { chat } from "../services/ai.js";
 
 // Generates a natural language learning profile from past session insights
 // Returns null if there's not enough history yet (less than 2 sessions)

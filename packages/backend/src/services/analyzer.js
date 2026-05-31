@@ -1,6 +1,6 @@
-import { chat } from "./ollama.js";
 import { buildAnalyzerPrompt } from "../prompts/analyzer.js";
 import { turnQueries, sessionQueries, insightQueries } from "../db/queries.js";
+import { chat } from "../services/ai.js";
 
 // analysis chain, the fourth agent primitive
 // It runs after a session ends and produces structured insights

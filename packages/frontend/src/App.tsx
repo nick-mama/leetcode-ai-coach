@@ -1,42 +1,8 @@
 import { useState, useEffect } from "react";
-import { Brain, Plus, LayoutDashboard, MessageSquare } from "lucide-react";
+import { Brain, LayoutDashboard, MessageSquare } from "lucide-react";
 import { ChatWindow } from "./components/ChatWindow";
 import { Dashboard } from "./components/Dashboard";
-import { startSession, type Problem } from "./lib/api";
-
-const SAMPLE_PROBLEMS: Problem[] = [
-  {
-    title: "Two Sum",
-    slug: "two-sum",
-    difficulty: "Easy",
-    topics: ["array", "hashmap"],
-    url: "https://leetcode.com/problems/two-sum/",
-  },
-  {
-    title: "Best Time to Buy and Sell Stock",
-    slug: "best-time-to-buy-and-sell-stock",
-    difficulty: "Easy",
-    topics: ["array", "sliding-window"],
-  },
-  {
-    title: "Valid Parentheses",
-    slug: "valid-parentheses",
-    difficulty: "Easy",
-    topics: ["stack", "string"],
-  },
-  {
-    title: "Number of Islands",
-    slug: "number-of-islands",
-    difficulty: "Medium",
-    topics: ["graph", "bfs", "dfs"],
-  },
-  {
-    title: "Coin Change",
-    slug: "coin-change",
-    difficulty: "Medium",
-    topics: ["dynamic-programming"],
-  },
-];
+import { startSession, getTurns, type Problem, type Turn } from "./lib/api";
 
 const DIFFICULTY_COLORS = {
   Easy: "text-green-400",
@@ -51,6 +17,37 @@ export default function App() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [activeProblem, setActiveProblem] = useState<Problem | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [initialTurns, setInitialTurns] = useState<Turn[]>([]);
+
+  async function handleSelectProblem(problem: Problem) {
+    setIsStarting(true);
+    try {
+      const { session, turns } = await startSession(problem);
+      setSessionId(session.id);
+      setActiveProblem(problem);
+      setInitialTurns(turns);
+      setView("chat");
+    } finally {
+      setIsStarting(false);
+    }
+  }
+
+  async function handleResumeSession(
+    sessionId: number,
+    problemTitle: string,
+    problemDifficulty: string,
+  ) {
+    const { turns } = await getTurns(sessionId);
+    setSessionId(sessionId);
+    setActiveProblem({
+      title: problemTitle,
+      slug: "",
+      difficulty: problemDifficulty as Problem["difficulty"],
+      topics: [],
+    });
+    setInitialTurns(turns);
+    setView("chat");
+  }
 
   useEffect(() => {
     if (typeof chrome === "undefined" || !chrome.storage) return;
@@ -96,20 +93,12 @@ export default function App() {
     };
   }, []);
 
-  async function handleSelectProblem(problem: Problem) {
-    setIsStarting(true);
-    try {
-      const { session } = await startSession(problem);
-      setSessionId(session.id);
-      setActiveProblem(problem);
-      setView("chat");
-    } finally {
-      setIsStarting(false);
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <div
+      className="min-h-screen bg-slate-900 text-slate-100"
+      style={{ background: "#0f172a" }}
+    >
+      {" "}
       {/* Header */}
       <header className="border-b border-slate-700 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -118,35 +107,23 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Nav tabs */}
           {view !== "chat" && (
-            <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
-              <button
-                onClick={() => setView("home")}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
-                  view === "home"
-                    ? "bg-slate-700 text-white"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                <Plus size={14} /> Problems
-              </button>
-              <button
-                onClick={() => setView("dashboard")}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
-                  view === "dashboard"
-                    ? "bg-slate-700 text-white"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                <LayoutDashboard size={14} /> Dashboard
-              </button>
-            </div>
+            <button
+              onClick={() =>
+                setView(view === "dashboard" ? "home" : "dashboard")
+              }
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                view === "dashboard"
+                  ? "bg-slate-700 text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <LayoutDashboard size={14} /> Dashboard
+            </button>
           )}
 
-          {/* Active session info */}
           {view === "chat" && activeProblem && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <MessageSquare size={14} className="text-blue-400" />
                 <span className="text-sm font-medium">
@@ -158,74 +135,51 @@ export default function App() {
                   {activeProblem.difficulty}
                 </span>
               </div>
+              <button
+                onClick={() => setView("dashboard")}
+                className="text-slate-400 hover:text-slate-200 transition-colors"
+                title="View dashboard"
+              >
+                <LayoutDashboard size={16} />
+              </button>
             </div>
           )}
         </div>
       </header>
-
-      {/* Main content */}
+      {/* Waiting screen */}
       {view === "home" && (
-        <div className="max-w-2xl mx-auto px-6 py-12">
-          <h1 className="text-2xl font-bold mb-2">What are you working on?</h1>
-          <p className="text-slate-400 mb-8">
-            Select a problem to start a coaching session
+        <div className="flex flex-col items-center justify-center h-96 text-center px-6">
+          <Brain size={48} className="text-slate-600 mb-4" />
+          <h1 className="text-xl font-semibold mb-2">Ready to coach</h1>
+          <p className="text-slate-400 text-sm">
+            Navigate to a LeetCode or NeetCode problem and the coach will start
+            automatically. Reload site if the coach doesn't start after a few
+            seconds.
           </p>
-
-          <div className="space-y-3">
-            {SAMPLE_PROBLEMS.map((problem) => (
-              <button
-                key={problem.slug}
-                onClick={() => handleSelectProblem(problem)}
-                disabled={isStarting}
-                className="w-full text-left bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl px-5 py-4 transition-colors disabled:opacity-50"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{problem.title}</span>
-                  <span
-                    className={`text-sm ${DIFFICULTY_COLORS[problem.difficulty]}`}
-                  >
-                    {problem.difficulty}
-                  </span>
-                </div>
-                <div className="flex gap-2 mt-2">
-                  {problem.topics.map((topic) => (
-                    <span
-                      key={topic}
-                      className="text-xs bg-slate-700 text-slate-300 rounded-full px-2 py-0.5"
-                    >
-                      {topic}
-                    </span>
-                  ))}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-6 p-4 bg-slate-800 border border-slate-700 rounded-xl">
-            <div className="flex items-center gap-2 text-slate-400 text-sm">
-              <Plus size={16} />
-              <span>Custom problem support coming in Week 2</span>
-            </div>
-          </div>
+          {isStarting && (
+            <p className="text-blue-400 text-sm mt-4 animate-pulse">
+              Detecting problem...
+            </p>
+          )}
         </div>
       )}
-
       {view === "chat" && sessionId && (
         <div style={{ height: "calc(100vh - 65px)" }}>
           <ChatWindow
             sessionId={sessionId}
+            initialTurns={initialTurns}
             onSessionEnd={() => {
               setSessionId(null);
               setActiveProblem(null);
+              setInitialTurns([]);
               setView("dashboard");
             }}
           />
         </div>
       )}
-
       {view === "dashboard" && (
         <div style={{ height: "calc(100vh - 65px)" }}>
-          <Dashboard />
+          <Dashboard onResumeSession={handleResumeSession} />
         </div>
       )}
     </div>

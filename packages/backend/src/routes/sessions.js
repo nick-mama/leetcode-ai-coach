@@ -6,9 +6,9 @@ import {
   insightQueries,
 } from "../db/queries.js";
 import { buildSystemPrompt, buildMessages } from "../prompts/coach.js";
-import { chatStream } from "../services/ollama.js";
 import { analyzeSession } from "../services/analyzer.js";
 import { generateProfile } from "../services/profiler.js";
+import { chatStream } from "../services/ai.js";
 
 const router = express.Router();
 

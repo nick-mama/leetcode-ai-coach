@@ -93,6 +93,19 @@ export const sessionQueries = {
       )
       .all(limit);
   },
+
+  findActiveByProblem(problemId) {
+    return db
+      .prepare(
+        `
+    SELECT * FROM sessions 
+    WHERE problem_id = ? AND status = 'active'
+    ORDER BY started_at DESC
+    LIMIT 1
+  `,
+      )
+      .get(problemId);
+  },
 };
 
 // Turns
