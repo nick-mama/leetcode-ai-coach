@@ -5,7 +5,11 @@ import {
   turnQueries,
   insightQueries,
 } from "../db/queries.js";
-import { buildSystemPrompt, buildMessages } from "../prompts/coach.js";
+import {
+  buildSystemPrompt,
+  buildMessages,
+  computeHintLevel,
+} from "../prompts/coach.js";
 import { analyzeSession } from "../services/analyzer.js";
 import { generateProfile } from "../services/profiler.js";
 import { chatStream } from "../services/ai.js";
@@ -64,7 +68,8 @@ router.post("/:id/chat", async (req, res) => {
     url: session.problem_url,
   };
   const learnerProfile = await generateProfile();
-  const systemPrompt = buildSystemPrompt(problem, learnerProfile);
+  const hintLevel = computeHintLevel(turns);
+  const systemPrompt = buildSystemPrompt(problem, learnerProfile, hintLevel);
   const messages = buildMessages(systemPrompt, turns);
 
   // Set up Server-Sent Events (SSE); this is how we stream to the browser
