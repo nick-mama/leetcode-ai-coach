@@ -45,6 +45,44 @@ const ROADMAP_LABELS = {
   "math-geometry": "Math & Geometry",
 };
 
+// Maps common topic strings from sessions to roadmap category IDs
+const TOPIC_MAP = {
+  array: "arrays-hashing",
+  arrays: "arrays-hashing",
+  hashing: "arrays-hashing",
+  hashmap: "arrays-hashing",
+  "hash map": "arrays-hashing",
+  "hash table": "arrays-hashing",
+  "two pointer": "two-pointers",
+  "two pointers": "two-pointers",
+  stack: "stack",
+  "binary search": "binary-search",
+  "sliding window": "sliding-window",
+  "linked list": "linked-list",
+  tree: "trees",
+  trees: "trees",
+  bst: "trees",
+  trie: "tries",
+  tries: "tries",
+  heap: "heap-priority-queue",
+  "priority queue": "heap-priority-queue",
+  backtracking: "backtracking",
+  graph: "graphs",
+  graphs: "graphs",
+  bfs: "graphs",
+  dfs: "graphs",
+  "dynamic programming": "1d-dynamic-programming",
+  dp: "1d-dynamic-programming",
+  "1d dp": "1d-dynamic-programming",
+  "2d dp": "2d-dynamic-programming",
+  "advanced graphs": "advanced-graphs",
+  intervals: "intervals",
+  greedy: "greedy",
+  "bit manipulation": "bit-manipulation",
+  math: "math-geometry",
+  geometry: "math-geometry",
+};
+
 router.get("/", (req, res) => {
   // Get all completed sessions with insights and problem data
   const sessions = db
@@ -189,30 +227,85 @@ router.get("/", (req, res) => {
     .slice(0, 3);
 
   // NeetCode roadmap progress
-  // A category is "practiced" if you have at least one session with that topic
-  const practicedTopics = new Set();
+  // Build per-category stats
+  const categoryStats = {};
+
   validSessions.forEach((s) => {
     const topics = JSON.parse(s.problem_topics ?? "[]");
-    topics.forEach((t) =>
-      practicedTopics.add(t.toLowerCase().replace(/\s+/g, "-")),
-    );
+    topics.forEach((t) => {
+      const normalized = t.toLowerCase().trim();
+      const mapped = TOPIC_MAP[normalized];
+      if (!mapped) return;
+
+      if (!categoryStats[mapped]) {
+        categoryStats[mapped] = { sessions: [], solvedSessions: [] };
+      }
+
+      categoryStats[mapped].sessions.push(s);
+      if (s.solved) {
+        categoryStats[mapped].solvedSessions.push(s);
+      }
+    });
   });
 
-  const roadmapProgress = ROADMAP.map((category) => ({
-    id: category,
-    label: ROADMAP_LABELS[category],
-    practiced: practicedTopics.has(category),
-    solved: validSessions.some((s) => {
-      const topics = JSON.parse(s.problem_topics ?? "[]");
-      return (
-        s.solved &&
-        topics.some((t) => t.toLowerCase().replace(/\s+/g, "-") === category)
-      );
-    }),
-  }));
+  // Determine mastery for each category
+  function isMastered(stats) {
+    if (!stats) return false;
+    const solved = stats.solvedSessions;
 
-  // Current position = first category not yet practiced
-  const currentPosition = roadmapProgress.findIndex((r) => !r.practiced);
+    const mediumSolved = solved.filter(
+      (s) => s.difficulty === "Medium" && (s.comm_score ?? 0) >= 7,
+    );
+    const hardSolved = solved.filter(
+      (s) => s.difficulty === "Hard" && (s.comm_score ?? 0) >= 7,
+    );
+
+    // Mastered if: 2+ medium solved with 7+ comm, OR 1+ hard solved with 7+ comm
+    return mediumSolved.length >= 2 || hardSolved.length >= 1;
+  }
+
+  const roadmapProgress = ROADMAP.map((category) => {
+    const stats = categoryStats[category];
+    const practiced = stats?.sessions.length > 0;
+    const mastered = isMastered(stats);
+    const mediumSolved =
+      stats?.solvedSessions.filter(
+        (s) => s.difficulty === "Medium" && (s.comm_score ?? 0) >= 7,
+      ).length ?? 0;
+    const hardSolved =
+      stats?.solvedSessions.filter(
+        (s) => s.difficulty === "Hard" && (s.comm_score ?? 0) >= 7,
+      ).length ?? 0;
+    const solvedCount = mediumSolved;
+    const hardCount = hardSolved;
+
+    const medHardSolved =
+      stats?.solvedSessions.filter(
+        (s) => s.difficulty === "Medium" || s.difficulty === "Hard",
+      ) ?? [];
+
+    const avgScore =
+      medHardSolved.length > 0
+        ? Math.round(
+            (medHardSolved.reduce((sum, s) => sum + (s.comm_score ?? 0), 0) /
+              medHardSolved.length) *
+              10,
+          ) / 10
+        : null;
+
+    return {
+      id: category,
+      label: ROADMAP_LABELS[category],
+      practiced,
+      mastered,
+      solvedCount,
+      hardCount,
+      avgScore,
+    };
+  });
+
+  // Current position = first category not yet mastered
+  const currentPosition = roadmapProgress.findIndex((r) => !r.mastered);
 
   res.json({
     overview: { totalSessions, solved, avgCommScore },

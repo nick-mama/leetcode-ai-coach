@@ -145,7 +145,10 @@ export interface ProfileData {
     id: string;
     label: string;
     practiced: boolean;
-    solved: boolean;
+    mastered: boolean;
+    solvedCount: number;
+    hardCount: number;
+    avgScore: number | null;
   }[];
   currentPosition: number;
 }

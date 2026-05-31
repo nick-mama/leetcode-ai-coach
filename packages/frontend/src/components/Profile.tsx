@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   CheckCircle,
   Circle,
-  TrendingUp,
   Brain,
   Target,
 } from "lucide-react";
@@ -156,7 +155,7 @@ export function Profile() {
       {data.commScoreHistory.length > 1 && (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-3">
           <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-1 mb-3">
-            <TrendingUp size={12} /> Communication Score Over Time
+            <Target size={12} /> Communication Score Over Time
           </h3>
           <ResponsiveContainer width="100%" height={140}>
             <LineChart
@@ -269,6 +268,16 @@ export function Profile() {
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-3">
         <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-1 mb-3">
           <Target size={12} /> Roadmap
+          <div className="relative group ml-1">
+            <div className="w-4 h-4 rounded-full border border-slate-400 text-slate-400 flex items-center justify-center cursor-pointer text-[10px] font-bold hover:border-white hover:text-white transition-colors flex-shrink-0">
+              i
+            </div>
+            <div className="absolute bottom-full left-0 mb-2 w-52 bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-xs text-slate-300 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+              To master a category, solve at least 2 Medium problems with an
+              average comm score of 7+. Solving 1 Hard problem with 7+ also
+              counts.
+            </div>
+          </div>
         </h3>
         <div className="space-y-1.5">
           {data.roadmapProgress.map((item, i) => (
@@ -280,22 +289,19 @@ export function Profile() {
                   : ""
               }`}
             >
-              {item.solved ? (
+              {item.mastered ? (
                 <CheckCircle
                   size={12}
                   className="text-green-400 flex-shrink-0"
                 />
               ) : item.practiced ? (
-                <CheckCircle
-                  size={12}
-                  className="text-yellow-400 flex-shrink-0"
-                />
+                <Circle size={12} className="text-yellow-400 flex-shrink-0" />
               ) : (
                 <Circle size={12} className="text-slate-600 flex-shrink-0" />
               )}
               <span
                 className={`text-xs ${
-                  item.solved
+                  item.mastered
                     ? "text-green-400"
                     : item.practiced
                       ? "text-yellow-400"
@@ -306,9 +312,20 @@ export function Profile() {
               >
                 {item.label}
               </span>
-              {i === data.currentPosition && (
-                <span className="text-xs text-blue-400 ml-auto">← current</span>
-              )}
+              <div className="ml-auto flex items-center gap-2">
+                {item.practiced && !item.mastered && (
+                  <span className="text-xs text-slate-500">
+                    {item.solvedCount}/2 med
+                    {item.hardCount > 0 ? ` · ${item.hardCount}/1 hard` : ""}
+                    {item.avgScore !== null
+                      ? ` · ${item.avgScore}/7 avg`
+                      : " · no med/hard yet"}
+                  </span>
+                )}
+                {i === data.currentPosition && (
+                  <span className="text-xs text-blue-400">current</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
