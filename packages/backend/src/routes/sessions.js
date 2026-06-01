@@ -13,6 +13,7 @@ import {
 import { analyzeSession } from "../services/analyzer.js";
 import { generateProfile } from "../services/profiler.js";
 import { chatStream } from "../services/ai.js";
+import db from "../db/database.js";
 
 const router = express.Router();
 
@@ -48,32 +49,26 @@ router.post("/:id/chat", async (req, res) => {
     return res.status(400).json({ error: "message is required" });
   }
 
-  // Load session + problem context
   const session = sessionQueries.findWithProblem(sessionId);
   if (!session) {
     return res.status(404).json({ error: "Session not found" });
   }
 
-  // Save the user's message to the database immediately
   turnQueries.add(sessionId, "user", message);
-
-  // Load the full conversation history (including the message we just saved)
   const turns = turnQueries.getBySession(sessionId);
 
-  // Build the prompt and message array for Ollama
   const problem = {
     title: session.problem_title,
     difficulty: session.problem_difficulty,
     topics: JSON.parse(session.problem_topics ?? "[]"),
     url: session.problem_url,
   };
+
   const learnerProfile = await generateProfile();
   const hintLevel = computeHintLevel(turns);
   const systemPrompt = buildSystemPrompt(problem, learnerProfile, hintLevel);
   const messages = buildMessages(systemPrompt, turns);
 
-  // Set up Server-Sent Events (SSE); this is how we stream to the browser
-  // SSE is simpler than WebSockets for one-way server→client streaming
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -81,19 +76,35 @@ router.post("/:id/chat", async (req, res) => {
   try {
     await chatStream(
       messages,
-      // onChunk: called for every token; send it to the browser immediately
       (token) => {
         res.write(`data: ${JSON.stringify({ token })}\n\n`);
       },
-      // onDone: called when the full response is complete; save to database
       (fullContent) => {
         turnQueries.add(sessionId, "assistant", fullContent);
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         res.end();
       },
+      (toolCall) => {
+        if (toolCall.tool === "detectSolved") {
+          console.log(
+            `✅ detectSolved — confidence: ${toolCall.input.confidence}, reason: ${toolCall.input.reason}`,
+          );
+          sessionQueries.end(sessionId, true);
+          analyzeSession(sessionId)
+            .then(() =>
+              console.log(`✅ Auto-analysis complete for session ${sessionId}`),
+            )
+            .catch((err) =>
+              console.error(`❌ Auto-analysis failed:`, err.message),
+            );
+          res.write(
+            `data: ${JSON.stringify({ autoSolved: true, reason: toolCall.input.reason })}\n\n`,
+          );
+        }
+      },
     );
   } catch (error) {
-    console.error("Ollama error:", error);
+    console.error("AI error:", error);
     res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
     res.end();
   }
@@ -131,6 +142,20 @@ router.get("/:id/insights", async (req, res) => {
   }
 
   res.json({ insights });
+});
+
+// DELETE /api/sessions/:id
+router.delete("/:id", (req, res) => {
+  const sessionId = parseInt(req.params.id);
+
+  // Delete turns first (foreign key constraint)
+  db.prepare("DELETE FROM turns WHERE session_id = ?").run(sessionId);
+  db.prepare("DELETE FROM session_insights WHERE session_id = ?").run(
+    sessionId,
+  );
+  db.prepare("DELETE FROM sessions WHERE id = ?").run(sessionId);
+
+  res.json({ success: true });
 });
 
 // GET /api/sessions/recent

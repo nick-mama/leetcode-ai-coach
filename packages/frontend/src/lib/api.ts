@@ -47,6 +47,7 @@ export async function sendMessage(
   message: string,
   onToken: (token: string) => void,
   onDone: () => void,
+  onAutoSolved?: () => void,
 ) {
   const res = await fetch(`${BASE}/sessions/${sessionId}/chat`, {
     method: "POST",
@@ -66,10 +67,11 @@ export async function sendMessage(
 
     for (const line of lines) {
       try {
-        const parsed = JSON.parse(line.slice(6)); // strip "data: "
+        const parsed = JSON.parse(line.slice(6));
         if (parsed.token) onToken(parsed.token);
         if (parsed.done) onDone();
         if (parsed.error) throw new Error(parsed.error);
+        if (parsed.autoSolved && onAutoSolved) onAutoSolved();
       } catch {
         /* partial line */
       }
@@ -156,4 +158,10 @@ export interface ProfileData {
 export async function getProfile(): Promise<ProfileData> {
   const res = await fetch(`${BASE}/profile`);
   return res.json();
+}
+
+export async function deleteSession(sessionId: number): Promise<void> {
+  await fetch(`${BASE}/sessions/${sessionId}`, {
+    method: "DELETE",
+  });
 }

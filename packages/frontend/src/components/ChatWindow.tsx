@@ -102,12 +102,10 @@ export function ChatWindow({
     await sendMessage(
       sessionId,
       userMessage,
-      // onToken: append each token to the streaming display
       (token) => {
         accumulated += token;
         setStreamingContent(accumulated);
       },
-      // onDone: move the completed response into turns, clear the stream
       () => {
         setTurns((prev) => [
           ...prev,
@@ -121,6 +119,12 @@ export function ChatWindow({
         ]);
         setStreamingContent("");
         setIsLoading(false);
+      },
+      // onAutoSolved: AI detected the problem is solved
+      () => {
+        setStreamingContent("");
+        setIsLoading(false);
+        onSessionEnd();
       },
     );
   }
