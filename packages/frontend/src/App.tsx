@@ -19,6 +19,7 @@ export default function App() {
   const [activeProblem, setActiveProblem] = useState<Problem | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [initialTurns, setInitialTurns] = useState<Turn[]>([]);
+  const [profileRefreshKey, setProfileRefreshKey] = useState(0);
 
   async function handleSelectProblem(problem: Problem) {
     setIsStarting(true);
@@ -123,7 +124,10 @@ export default function App() {
                 <LayoutDashboard size={14} /> Sessions
               </button>
               <button
-                onClick={() => setView(view === "profile" ? "home" : "profile")}
+                onClick={() => {
+                  setProfileRefreshKey((k) => k + 1);
+                  setView(view === "profile" ? "home" : "profile");
+                }}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
                   view === "profile"
                     ? "bg-slate-700 text-white"
@@ -156,7 +160,10 @@ export default function App() {
                 <LayoutDashboard size={16} />
               </button>
               <button
-                onClick={() => setView("profile")}
+                onClick={() => {
+                  setProfileRefreshKey((k) => k + 1);
+                  setView("profile");
+                }}
                 className="text-slate-400 hover:text-slate-200 transition-colors"
                 title="View profile"
               >
@@ -204,7 +211,7 @@ export default function App() {
       )}
       {view === "profile" && (
         <div style={{ height: "calc(100vh - 65px)" }}>
-          <Profile />
+          <Profile key={profileRefreshKey} />
         </div>
       )}
     </div>

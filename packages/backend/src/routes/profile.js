@@ -47,40 +47,86 @@ const ROADMAP_LABELS = {
 
 // Maps common topic strings from sessions to roadmap category IDs
 const TOPIC_MAP = {
+  // Arrays & Hashing
   array: "arrays-hashing",
   arrays: "arrays-hashing",
   hashing: "arrays-hashing",
   hashmap: "arrays-hashing",
   "hash map": "arrays-hashing",
   "hash table": "arrays-hashing",
+  string: "arrays-hashing",
+  sorting: "arrays-hashing",
+
+  // Two Pointers
   "two pointer": "two-pointers",
   "two pointers": "two-pointers",
+
+  // Stack
   stack: "stack",
+  "monotonic stack": "stack",
+
+  // Binary Search
   "binary search": "binary-search",
+
+  // Sliding Window
   "sliding window": "sliding-window",
+
+  // Linked List
   "linked list": "linked-list",
+  recursion: "linked-list",
+
+  // Trees
   tree: "trees",
   trees: "trees",
   bst: "trees",
+  "binary tree": "trees",
+  "binary search tree": "trees",
+
+  // Tries
   trie: "tries",
   tries: "tries",
+
+  // Heap
   heap: "heap-priority-queue",
   "priority queue": "heap-priority-queue",
+  "heap (priority queue)": "heap-priority-queue",
+
+  // Backtracking
   backtracking: "backtracking",
+
+  // Graphs
   graph: "graphs",
   graphs: "graphs",
   bfs: "graphs",
   dfs: "graphs",
+  "breadth-first search": "graphs",
+  "depth-first search": "graphs",
+  "union find": "graphs",
+  "topological sort": "graphs",
+
+  // Dynamic Programming
   "dynamic programming": "1d-dynamic-programming",
   dp: "1d-dynamic-programming",
   "1d dp": "1d-dynamic-programming",
+  memoization: "1d-dynamic-programming",
   "2d dp": "2d-dynamic-programming",
+
+  // Advanced Graphs
   "advanced graphs": "advanced-graphs",
+
+  // Intervals
   intervals: "intervals",
+
+  // Greedy
   greedy: "greedy",
+
+  // Bit Manipulation
   "bit manipulation": "bit-manipulation",
+
+  // Math & Geometry
   math: "math-geometry",
   geometry: "math-geometry",
+  matrix: "math-geometry",
 };
 
 router.get("/", (req, res) => {
@@ -245,6 +291,16 @@ router.get("/", (req, res) => {
       if (s.solved) {
         categoryStats[mapped].solvedSessions.push(s);
       }
+    });
+  });
+
+  validSessions.forEach((s) => {
+    const topics = JSON.parse(s.problem_topics ?? "[]");
+    console.log("Session topics raw:", topics);
+    topics.forEach((t) => {
+      const normalized = t.toLowerCase().trim();
+      const mapped = TOPIC_MAP[normalized];
+      console.log(`  "${normalized}" → ${mapped ?? "NO MATCH"}`);
     });
   });
 

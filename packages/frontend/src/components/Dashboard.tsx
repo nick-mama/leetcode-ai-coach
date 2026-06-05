@@ -282,7 +282,7 @@ export function Dashboard({ onResumeSession }: Props) {
                         </p>
                         <div className="flex items-center gap-3 mt-2">
                           <span className="text-xs text-slate-400">
-                            Comm:{" "}
+                            Communication:{" "}
                             <span
                               className={`font-medium ${
                                 selectedInsights.comm_score <= 5
