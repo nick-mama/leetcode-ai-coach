@@ -315,13 +315,13 @@ router.get("/", (req, res) => {
     const solved = stats.solvedSessions;
 
     const mediumSolved = solved.filter(
-      (s) => s.difficulty === "Medium" && (s.comm_score ?? 0) >= 7,
+      (s) => s.difficulty === "Medium" && (s.comm_score ?? 0) >= 8,
     );
     const hardSolved = solved.filter(
-      (s) => s.difficulty === "Hard" && (s.comm_score ?? 0) >= 7,
+      (s) => s.difficulty === "Hard" && (s.comm_score ?? 0) >= 8,
     );
 
-    // Mastered if: 2+ medium solved with 7+ comm, OR 1+ hard solved with 7+ comm
+    // Mastered if: 2+ medium solved with 8+ comm, OR 1+ hard solved with 8+ comm
     return mediumSolved.length >= 2 || hardSolved.length >= 1;
   }
 
@@ -331,11 +331,11 @@ router.get("/", (req, res) => {
     const mastered = isMastered(stats);
     const mediumSolved =
       stats?.solvedSessions.filter(
-        (s) => s.difficulty === "Medium" && (s.comm_score ?? 0) >= 7,
+        (s) => s.difficulty === "Medium" && (s.comm_score ?? 0) >= 8,
       ).length ?? 0;
     const hardSolved =
       stats?.solvedSessions.filter(
-        (s) => s.difficulty === "Hard" && (s.comm_score ?? 0) >= 7,
+        (s) => s.difficulty === "Hard" && (s.comm_score ?? 0) >= 8,
       ).length ?? 0;
     const solvedCount = mediumSolved;
     const hardCount = hardSolved;

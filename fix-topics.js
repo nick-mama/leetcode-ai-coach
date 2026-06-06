@@ -1,16 +1,19 @@
 const Database = require("better-sqlite3");
 const db = new Database("packages/backend/data/coach.db");
 
-const rows = db
-  .prepare(
-    `
-  SELECT p.title, p.difficulty, p.topics, s.solved, si.comm_score 
-  FROM sessions s 
-  JOIN problems p ON p.id = s.problem_id 
-  LEFT JOIN session_insights si ON si.session_id = s.id
-  WHERE s.status = 'completed'
-`,
-  )
-  .all();
+const fixes = [
+  {
+    slug: "top-k-elements-in-list",
+    topics: ["Array", "Hash Table", "Sorting", "Heap (Priority Queue)"],
+  },
+  {
+    slug: "top-k-frequent-elements",
+    topics: ["Array", "Hash Table", "Sorting", "Heap (Priority Queue)"],
+  },
+];
 
-console.log(JSON.stringify(rows, null, 2));
+const stmt = db.prepare("UPDATE problems SET topics = ? WHERE slug = ?");
+fixes.forEach(({ slug, topics }) => {
+  const result = stmt.run(JSON.stringify(topics), slug);
+  console.log(`${slug} → rows updated: ${result.changes}`);
+});

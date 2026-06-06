@@ -274,7 +274,7 @@ export function Profile() {
             </div>
             <div className="absolute bottom-full left-0 mb-2 w-52 bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-xs text-slate-300 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
               To master a category, solve at least 2 Medium problems with an
-              average comm score of 7+. Solving 1 Hard problem with 7+ also
+              average comm score of 8+. Solving 1 Hard problem with 8+ also
               counts.
             </div>
           </div>
@@ -318,7 +318,7 @@ export function Profile() {
                     {item.solvedCount}/2 med
                     {item.hardCount > 0 ? ` · ${item.hardCount}/1 hard` : ""}
                     {item.avgScore !== null
-                      ? ` · ${item.avgScore}/7 avg`
+                      ? ` · ${item.avgScore}/8 avg`
                       : " · no med/hard yet"}
                   </span>
                 )}
