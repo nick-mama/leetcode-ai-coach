@@ -278,18 +278,23 @@ router.get("/", (req, res) => {
 
   validSessions.forEach((s) => {
     const topics = JSON.parse(s.problem_topics ?? "[]");
+    const mappedCategories = new Set();
+
     topics.forEach((t) => {
       const normalized = t.toLowerCase().trim();
       const mapped = TOPIC_MAP[normalized];
       if (!mapped) return;
+      mappedCategories.add(mapped);
+    });
 
-      if (!categoryStats[mapped]) {
-        categoryStats[mapped] = { sessions: [], solvedSessions: [] };
+    // Push session once per category, not once per topic
+    mappedCategories.forEach((category) => {
+      if (!categoryStats[category]) {
+        categoryStats[category] = { sessions: [], solvedSessions: [] };
       }
-
-      categoryStats[mapped].sessions.push(s);
+      categoryStats[category].sessions.push(s);
       if (s.solved) {
-        categoryStats[mapped].solvedSessions.push(s);
+        categoryStats[category].solvedSessions.push(s);
       }
     });
   });

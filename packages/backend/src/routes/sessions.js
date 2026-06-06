@@ -87,15 +87,15 @@ router.post("/:id/chat", async (req, res) => {
       (toolCall) => {
         if (toolCall.tool === "detectSolved") {
           console.log(
-            `✅ detectSolved — confidence: ${toolCall.input.confidence}, reason: ${toolCall.input.reason}`,
+            `detectSolved — confidence: ${toolCall.input.confidence}, reason: ${toolCall.input.reason}`,
           );
           sessionQueries.end(sessionId, true);
           analyzeSession(sessionId)
             .then(() =>
-              console.log(`✅ Auto-analysis complete for session ${sessionId}`),
+              console.log(`Auto-analysis complete for session ${sessionId}`),
             )
             .catch((err) =>
-              console.error(`❌ Auto-analysis failed:`, err.message),
+              console.error(`Auto-analysis failed:`, err.message),
             );
           res.write(
             `data: ${JSON.stringify({ autoSolved: true, reason: toolCall.input.reason })}\n\n`,
